@@ -30,7 +30,7 @@ A comprehensive PHP module for WHMCS providing advanced admin and client functio
   - Enhanced password management
 
 - **Core Features**
-  - Multi-language support
+  - Multi-language support (English and Turkish)
   - Modular architecture
   - Template customization
   - Logging and error handling
@@ -97,7 +97,7 @@ Note: The cron job is essential for processing WordPress installations in the qu
    - Clear WHMCS template cache
 
 3. **Language file not loading**
-   - Verify language file exists
+   - Verify language file exists (e.g., english.php or turkish.php)
    - Check file encoding (UTF-8)
    - Ensure proper file permissions
 
@@ -123,7 +123,7 @@ Note: The cron job is essential for processing WordPress installations in the qu
 - Basic WordPress provisioning
 - Admin and client interfaces
 - Template support
-- Multi-language capabilities
+- Multi-language capabilities (English and Turkish)
 - FTP-based installation process
 - Queue system implementation
 
