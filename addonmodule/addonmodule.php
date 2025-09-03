@@ -41,6 +41,9 @@ if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
 
+require_once __DIR__ . '/lib/Admin/AdminDispatcher.php';
+require_once __DIR__ . '/lib/Client/ClientDispatcher.php';
+
 /**
  * Define addon module configuration parameters.
  *
