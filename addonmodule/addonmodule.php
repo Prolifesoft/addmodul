@@ -89,15 +89,6 @@ function addonmodule_config()
  */
 function addonmodule_activate() {
     try {
-        // Create license table
-        if (!Capsule::schema()->hasTable('licenseAdd')) {
-            Capsule::schema()->create('licenseAdd', function ($table) {
-                $table->integer('id')->default(1);
-                $table->string('license_key')->nullable();
-                $table->string('local_key')->nullable();
-            });
-        }
-
         // Create WordPress queue table
         if (!Capsule::schema()->hasTable('mod_wordpress_queue')) {
             Capsule::schema()->create('mod_wordpress_queue', function ($table) {
@@ -119,7 +110,7 @@ function addonmodule_activate() {
 
         return [
             'status' => 'success',
-            'description' => 'Module activated successfully. Please update the license key in the module settings.',
+            'description' => 'Module activated successfully.',
         ];
     } catch (\Exception $e) {
         return [
@@ -146,17 +137,11 @@ function addonmodule_deactivate()
 {
     try {
         $message = [];
-        
+
         // Remove WordPress queue table
         if (Capsule::schema()->hasTable('mod_wordpress_queue')) {
             Capsule::schema()->dropIfExists('mod_wordpress_queue');
             $message[] = 'WordPress queue table removed';
-        }
-
-        // Remove license table
-        if (Capsule::schema()->hasTable('licenseAdd')) {
-            Capsule::schema()->dropIfExists('licenseAdd');
-            $message[] = 'License data removed';
         }
 
         if (empty($message)) {
@@ -173,35 +158,12 @@ function addonmodule_deactivate()
     } catch (\Exception $e) {
         return [
             'status' => "error",
-            'description' => "An error occurred while attempting to remove the license data: {$e->getMessage()}",
+            'description' => 'An error occurred while attempting to remove module data: ' . $e->getMessage(),
         ];
     }
 }
 
-/**
- * Helper function to update or insert the license key.
- * This function should be called with the actual license key value at the appropriate place,
- * such as from a custom admin interface within your module.
- */
-function addonmodule_update_license_key($licenseKey) {
-    try {
-        // Validate the license key if necessary
-        if (!empty($licenseKey)) {
-            // Assuming you want to update the first row or insert if the table is empty.
-            $existing = Capsule::table('licenseAdd')->first();
-            if ($existing) {
-                Capsule::table('licenseAdd')->where('id', $existing->id)->update(['license_key' => $licenseKey]);
-            } else {
-                Capsule::table('licenseAdd')->insert(['license_key' => $licenseKey]);
-            }
-            return ['status' => 'success', 'description' => 'License key updated successfully.'];
-        } else {
-            return ['status' => 'error', 'description' => 'License key is empty.'];
-        }
-    } catch (\Exception $e) {
-        return ['status' => 'error', 'description' => 'Error updating the license key: ' . $e->getMessage()];
-    }
-}
+// License management removed
 
 /**
  * Upgrade.
@@ -293,7 +255,7 @@ function addonmodule_sidebar($vars)
     $configRadioField = $vars['Radio Field Name'];
     $configTextareaField = $vars['Textarea Field Name'];
 
-    $sidebar = '<p>Thank you for supporting our software. you can buy another license key <a href="https://billing.smartinggoods.com/index.php/store/licensing" target="_blank">here</a>. </p>';
+    $sidebar = '<p>Thank you for supporting our software.</p>';
     
     return $sidebar;
 }

@@ -19,13 +19,11 @@ define('WHMCS', true);
 // Include WHMCS files
 require_once WHMCS_PATH . '/init.php';
 require_once WHMCS_PATH . '/configuration.php';
-require_once __DIR__ . '/lib/Admin/licensecheck.php';
 require_once __DIR__ . '/hooks.php';
 
 // Verify required functions exist
 echo "Checking required functions...\n";
 $requiredFunctions = [
-    'check_license',
     'wordpress_provisioning_cron',
     'process_wordpress_queue'
 ];
@@ -43,14 +41,6 @@ ini_set('display_errors', 1);
 echo "Starting cron test at: " . date('Y-m-d H:i:s') . "\n";
 
 try {
-    echo "Checking license data...\n";
-    $licenseData = Capsule::table('licenseAdd')->first();
-    if (!$licenseData) {
-        echo "No license data found\n";
-    } else {
-        echo "License data found\n";
-    }
-
     echo "\nExecuting cron...\n";
     wordpress_provisioning_cron();
     echo "Cron execution completed\n";

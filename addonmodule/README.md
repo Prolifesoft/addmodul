@@ -19,7 +19,6 @@ A comprehensive PHP module for WHMCS providing advanced admin and client functio
 - **Admin Interface**
   - Module management dashboard
   - Configuration settings
-  - License verification
   - Error logging
   - Queue monitoring
 

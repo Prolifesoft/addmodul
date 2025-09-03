@@ -3,7 +3,6 @@
 namespace WHMCS\Module\Addon\AddonModule\Admin;
 
 require_once __DIR__ . '/../../../../../init.php';
-require_once __DIR__ . '/licensecheck.php';
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Schema\Blueprint;
 
@@ -38,70 +37,6 @@ private function handleFormSubmission($vars)
 {
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $logFilePath = __DIR__ . '/error_log.log';
-
-        // Handle License Key Submission
-        if (isset($_POST['licenseKey'])) {
-            $licenseKey = $_POST['licenseKey'];
-            if ($licenseKey === '') {
-                // License key input is empty, remove the license key from the session
-                 $deleteResult =Capsule::table('licenseAdd')->where('id', 1)->delete();
-                unset($_SESSION['licenseKey']);
-                if ($deleteResult) {
-                    error_log("License Key removed from database.\n", 3, $logFilePath);
-                } else {
-                    error_log("Failed to remove License Key from database.\n", 3, $logFilePath);
-                }
-                unset($_SESSION['licenseKey']);
-                unset($_SESSION['licenseVerified']);
-               // error_log("License Key removed.\n", 3, $logFilePath);
-            } else {
-                // Assuming addonmodule_update_license_key is accessible and takes the license key as a parameter
-                $updateResult = \addonmodule_update_license_key($licenseKey);
-                error_log("License Key Update: " . json_encode($updateResult) . "\n", 3, $logFilePath);
-                
-                
-            // Verify license key logic
-            require_once __DIR__ . '/licensecheck.php'; // Include your verification logic
-            $licenseKey = $_POST['licenseKey'];
-            $verificationResult = \check_license($licenseKey, $localKey); // Call your verification function
-            
-            // Handle verification result
-            // For example, log the result or store it in the session
-            $logFilePath = __DIR__ . '/verification.log'; // Path to your log file
-            
-           if ($verificationResult['status'] === 'Active') {
-                // License is valid
-                $_SESSION['licenseVerified'] = true;
-                $_SESSION['licenseKeyStatus'] = 'Valid'; // Store verification result in session
-                $_SESSION['licenseKeyMessage'] = 'The license key is valid.'; // Message for user feedback
-                error_log("License Key Verified: Valid. Key: $licenseKey\n", 3, $logFilePath);
-                
-            } else {
-                // License is not valid
-                unset($_SESSION['licenseVerified']); // Ensure this is unset if the license is invalid
-                $_SESSION['licenseKeyStatus'] = 'Invalid'; // Store verification result in session
-                $_SESSION['licenseKeyMessage'] = 'The license key is invalid. Please try again.'; // Message for user feedback
-                error_log("License Key Verified: Invalid. Key: $licenseKey\n", 3, $logFilePath);
-            }
-            
-            
-                // Assuming $localKey is defined earlier or as null if not used
-            $verificationResult = \check_license($licenseKey, $localKey);
-            if ($verificationResult['status'] === 'Active') {
-                // License is valid
-                $_SESSION['licenseVerified'] = true;
-                
-            } else {
-                // License is not valid
-                $_SESSION['notValid'] = false;
-            }
-                // Store license key in session
-               // $_SESSION['licenseKey'] = $licenseKey;
-               unset($_SESSION['licenseKey']);
-            }
-            
-            } 
-            
 
         if (isset($_POST['removeIndex']) && isset($_POST['domainName'])) {
             error_log("Error: Conflicting form submission received.\n", 3, $logFilePath);
@@ -176,35 +111,6 @@ private function handleFormSubmission($vars)
         }
 
         
-         $licenseVerificationStatus = '';
-        if (isset($_SESSION['licenseVerified'])) {
-            $licenseVerificationStatus = "<span style='color: green; font-weight: bold;'> &#10004; License Verified</span>";
-        }
-
-    $licenseKeyResult = Capsule::table('licenseAdd')->select('license_key')->first();
-    $licenseKeyValue = $licenseKeyResult ? htmlspecialchars($licenseKeyResult->license_key) : '';
-    
-    $licenseKeyRow = "<div class='row' style='margin-bottom: 20px;'>" .
-                     "<div class='col-md-4'>" .
-                     "<form method='post'>" .
-                     "<div class='form-group'>" .
-                     "<input type='text' class='form-control mb-2' id='licenseKey' name='licenseKey' placeholder='Enter License' value='{$licenseKeyValue}'>" .
-                     "</div>" .
-                     "<div class='form-group'>" .
-                     "<button type='submit' class='btn btn-primary btn-block'>Save License</button>" .
-                     "</div>" .
-                     "</form>" .
-                     "</div>" .
-                     "<div class='col-md-8' style='padding-top: 8px;'>" .
-                     $licenseVerificationStatus . // Display license verification status here
-                     "</div>" .
-                     "</div>";
-                         
-        $licenseKeyVerify = "<tr>" .
-                 "<form method='post'>" .
-                 "<td colspan='4'><input type='submit' name='verifyLicense' value='Verify License'></td>" .
-                 "</form>" .
-                 "</tr>";
 
         $formRow = "<tr>" .
                    "<form method='post'>" .
@@ -216,18 +122,14 @@ private function handleFormSubmission($vars)
                    "</form>" .
                    "</tr>";
 
-        $tableHtml ="<div><h1>Add your license Key<h1></div>".
-                    "<div>{$licenseKeyRow}</div>.
-                    <div>
-                    <blockquote>Note : Make sure to keep your wordpress template username as 'admin'<br>
-                    </blockquote><br><br><br></div>" . // Display license key row above the table
-                    "<h2>Map Wordpress template with WHMCS Product </h2>".
-                     "<table border='1' style='width: 100%; border-collapse: collapse;'>" .
-                     "<thead><tr><th>Domain Name</th><th>FTP User</th><th>Password</th><th>Product</th><th>Action</th></tr></thead>" .
-                     "<tbody>" .
-                     "{$entriesRows}" .
-                     "{$formRow}" . // Existing form row for adding new entries
-                     "</tbody></table>";
+        $tableHtml ="<div><blockquote>Note : Make sure to keep your wordpress template username as 'admin'<br></blockquote><br><br><br></div>" .
+                    "<h2>Map Wordpress template with WHMCS Product </h2>" .
+                    "<table border='1' style='width: 100%; border-collapse: collapse;'>" .
+                    "<thead><tr><th>Domain Name</th><th>FTP User</th><th>Password</th><th>Product</th><th>Action</th></tr></thead>" .
+                    "<tbody>" .
+                    "{$entriesRows}" .
+                    "{$formRow}" .
+                    "</tbody></table>";
         
         return $tableHtml;
     }
