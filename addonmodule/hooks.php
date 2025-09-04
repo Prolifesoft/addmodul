@@ -78,9 +78,10 @@ function perform_softaculous_provisioning($vars, $domainName, $ftpUser, $ftpPass
     $curlError = curl_error($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     logActivity("Import HTTP Response Code: " . $httpCode);
-
-    if ($resp === false) {
+    if ($curlError) {
         logActivity("cURL error during Softaculous request for domain {$domain}: {$curlError}");
+    }
+    if ($resp === false || $httpCode !== 200) {
         curl_close($ch);
         return;
     }

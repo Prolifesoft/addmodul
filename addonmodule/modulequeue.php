@@ -1,11 +1,11 @@
 <?php
-require_once __DIR__ . '/../init.php';
+require_once __DIR__ . '/../../../init.php';
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 // Ensure processing function is available
 if (!function_exists('process_wordpress_queue')) {
-    require_once __DIR__ . '/../modules/addons/addonmodule/hooks.php';
+    require_once __DIR__ . '/hooks.php';
 }
 
 if (isset($_GET['retry'])) {
