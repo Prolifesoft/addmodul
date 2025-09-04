@@ -2,7 +2,6 @@
 // modules/addons/wordpress_provisioning/wordpress_provisioning.php
 
 use Illuminate\Database\Capsule\Manager as Capsule;
-require_once __DIR__ . '/lib/Admin/licensecheck.php';
 
 if (!defined('WHMCS')) {
     die('You cannot access this file directly.');
@@ -76,11 +75,24 @@ function perform_softaculous_provisioning($vars, $domainName, $ftpUser, $ftpPass
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
 
     $resp = curl_exec($ch);
+    $curlError = curl_error($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     logActivity("Import HTTP Response Code: " . $httpCode);
+    if ($curlError) {
+        logActivity("cURL error during Softaculous request for domain {$domain}: {$curlError}");
+    }
+    if ($resp === false || $httpCode !== 200) {
+        curl_close($ch);
+        return;
+    }
+
     curl_close($ch);
 
-    $data = unserialize($resp);
+    $data = @unserialize($resp);
+    if ($data === false) {
+        logActivity("Invalid Softaculous response for domain {$domain}: " . print_r($resp, true));
+        return;
+    }
 
     if (isset($data['error'])) {
         logActivity("Import Error for domain {$domain}: " . print_r($data['error'], true));
@@ -221,24 +233,10 @@ function process_wordpress_queue() {
 }
 
 function wordpress_provisioning_cron() {
-    // First check license
-    $licenseData = Capsule::table('licenseAdd')->first();
-    if (!$licenseData || !check_license($licenseData->license_key, $licenseData->local_key)) {
-        logActivity("License validation failed - skipping WordPress queue processing");
-        return;
-    }
-
     process_wordpress_queue();
 }
 
 function after_module_create($vars) {
-    // Check license
-    $licenseData = Capsule::table('licenseAdd')->first();
-    if (!$licenseData || !check_license($licenseData->license_key, $licenseData->local_key)) {
-        logActivity("License validation failed for product ID: " . $vars['params']['pid']);
-        return;
-    }
-
     $productId = $vars['params']['pid'];
     $productDetail = Capsule::table('module_provisioning_details')
                           ->where('pid', $productId)
