@@ -75,11 +75,23 @@ function perform_softaculous_provisioning($vars, $domainName, $ftpUser, $ftpPass
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
 
     $resp = curl_exec($ch);
+    $curlError = curl_error($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     logActivity("Import HTTP Response Code: " . $httpCode);
+
+    if ($resp === false) {
+        logActivity("cURL error during Softaculous request for domain {$domain}: {$curlError}");
+        curl_close($ch);
+        return;
+    }
+
     curl_close($ch);
 
-    $data = unserialize($resp);
+    $data = @unserialize($resp);
+    if ($data === false) {
+        logActivity("Invalid Softaculous response for domain {$domain}: " . print_r($resp, true));
+        return;
+    }
 
     if (isset($data['error'])) {
         logActivity("Import Error for domain {$domain}: " . print_r($data['error'], true));
